@@ -1,0 +1,395 @@
+<html><head>
+<title>./Documents/darkmoon/src/bin/ap2html080104.py</title>
+<meta name="Generator" content="htmlizer/[twisted, version 8.2.0]" />
+<link rel="alternate" href="./Documents/darkmoon/src/bin/ap2html080104.py" type="text/x-python" />
+
+</head>
+<body>
+<pre>
+<span class="py-src-comment">#!/usr/bin/env python</span>
+<span class="py-src-string">"""USAGE:
+
+OPTIONS:
+    -h, -?, --help: obtain help
+
+TODO:
+"""</span>
+<span class="py-src-keyword">import</span> <span class="py-src-variable">sys</span>, <span class="py-src-variable">os</span>, <span class="py-src-variable">getopt</span>, <span class="py-src-variable">re</span>, <span class="py-src-variable">time</span>
+<span class="py-src-keyword">from</span> <span class="py-src-variable">stickystuff</span> <span class="py-src-keyword">import</span> *
+<span class="py-src-keyword">from</span> <span class="py-src-variable">tree</span> <span class="py-src-keyword">import</span> <span class="py-src-variable">tree</span>
+<span class="py-src-comment"># checks options</span>
+<span class="py-src-keyword">def</span> <span class="py-src-identifier">checkopt</span>():
+    <span class="py-src-variable">flags</span>={}
+    <span class="py-src-variable">sopt</span>=<span class="py-src-string">'h?'</span>
+    <span class="py-src-variable">lopt</span>=[<span class="py-src-string">'help'</span>]
+    <span class="py-src-keyword">try</span>:
+        <span class="py-src-variable">opts</span>, <span class="py-src-variable">args</span> = <span class="py-src-variable">getopt</span>.<span class="py-src-variable">gnu_getopt</span>(<span class="py-src-variable">sys</span>.<span class="py-src-variable">argv</span>[<span class="py-src-number">1</span>:], <span class="py-src-variable">sopt</span>, <span class="py-src-variable">lopt</span>)
+    <span class="py-src-keyword">except</span> <span class="py-src-variable">getopt</span>.<span class="py-src-variable">GetoptError</span>:
+        <span class="py-src-variable">sys</span>.<span class="py-src-variable">stderr</span>.<span class="py-src-variable">write</span>(<span class="py-src-variable">__doc__</span>)
+    <span class="py-src-keyword">for</span> <span class="py-src-variable">opt</span>, <span class="py-src-variable">optarg</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">opts</span>:
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">opt</span> <span class="py-src-keyword">in</span> (<span class="py-src-string">'-h'</span>, <span class="py-src-string">'-?'</span>, <span class="py-src-string">'--help'</span>):
+            <span class="py-src-variable">sys</span>.<span class="py-src-variable">stdout</span>.<span class="py-src-variable">write</span>(<span class="py-src-variable">__doc__</span>)
+            <span class="py-src-variable">sys</span>.<span class="py-src-variable">exit</span>()
+    <span class="py-src-keyword">return</span> <span class="py-src-variable">opts</span>, <span class="py-src-variable">args</span>, <span class="py-src-variable">flags</span>
+
+<span class="py-src-variable">opts</span>, <span class="py-src-variable">args</span>, <span class="py-src-variable">flags</span>=<span class="py-src-variable">checkopt</span>()
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">Td</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__init__</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">text</span>, <span class="py-src-parameter">cssclass</span>, <span class="py-src-parameter">options</span>=<span class="py-src-string">""</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>=<span class="py-src-variable">text</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>=<span class="py-src-variable">cssclass</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>=<span class="py-src-variable">options</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__str__</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-keyword">return</span> <span class="py-src-string">'  &lt;td class="%s" %s&gt;\n   %s\n  &lt;/td&gt;\n'</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>)
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">Tr</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__init__</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">tds</span>, <span class="py-src-parameter">cssclass</span>, <span class="py-src-parameter">options</span>=<span class="py-src-string">""</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>=<span class="py-src-string">""</span>.<span class="py-src-variable">join</span>([<span class="py-src-string">"%s"</span> % <span class="py-src-variable">td</span> <span class="py-src-keyword">for</span> <span class="py-src-variable">td</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">tds</span>])
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>=<span class="py-src-variable">cssclass</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>=<span class="py-src-variable">options</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__str__</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Returns in notime a well formated &lt;tr&gt; element given a td list"""</span>
+        <span class="py-src-keyword">return</span> <span class="py-src-string">' &lt;tr class="%s" %s&gt;\n%s &lt;/tr&gt;\n'</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>)
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">Table</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__init__</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">trs</span>, <span class="py-src-parameter">summary</span>, <span class="py-src-parameter">cssclass</span>, <span class="py-src-parameter">options</span>=<span class="py-src-string">""</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>=<span class="py-src-string">""</span>.<span class="py-src-variable">join</span>([<span class="py-src-string">"%s"</span> % <span class="py-src-variable">tr</span> <span class="py-src-keyword">for</span> <span class="py-src-variable">tr</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">trs</span>])
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">summary</span>=<span class="py-src-variable">summary</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>=<span class="py-src-variable">cssclass</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>=<span class="py-src-variable">options</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__str__</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Returns in notime a well formated &lt;table&gt; element given a tr list"""</span>
+        <span class="py-src-keyword">return</span> <span class="py-src-string">'&lt;table summary="%s" class="%s" %s&gt;\n%s &lt;/table&gt;\n'</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">summary</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>)
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">A</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__init__</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">text</span>, <span class="py-src-parameter">url</span>, <span class="py-src-parameter">cssclass</span>, <span class="py-src-parameter">options</span>=<span class="py-src-string">""</span>):
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>=<span class="py-src-variable">text</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">url</span>=<span class="py-src-variable">url</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>=<span class="py-src-variable">cssclass</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>=<span class="py-src-variable">options</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__str__</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Returns in notime a well formated &lt;table&gt; element given a tr list"""</span>
+        <span class="py-src-keyword">return</span> <span class="py-src-string">'&lt;a href="%s" class="%s" %s&gt;%s&lt;/a&gt;'</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">url</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">cssclass</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">options</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>)
+
+
+<span class="py-src-keyword">class</span> <span class="py-src-identifier">Page</span>(<span class="py-src-parameter">object</span>):
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">__init__</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">filename</span>):
+        <span class="py-src-comment"># reliminar check about the file existency</span>
+        <span class="py-src-keyword">if</span> <span class="py-src-keyword">not</span> <span class="py-src-variable">os</span>.<span class="py-src-variable">path</span>.<span class="py-src-variable">isfile</span>(<span class="py-src-variable">filename</span>):
+            <span class="py-src-variable">sys</span>.<span class="py-src-variable">stderr</span>.<span class="py-src-variable">write</span>(<span class="py-src-string">"I can process only existing files!!!\n"</span>)
+        <span class="py-src-comment"># files to process are contained in the src directory</span>
+        <span class="py-src-comment"># using standard paths the filename argument should have the form</span>
+        <span class="py-src-comment"># "../src/WHATEVER"</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>=<span class="py-src-variable">filename</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">lines</span>=<span class="py-src-variable">file</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>).<span class="py-src-variable">read</span>()
+        <span class="py-src-comment"># standard prepath=".."</span>
+        <span class="py-src-comment"># standard name="WHATEVER"</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">prepath</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">name</span> = <span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>.<span class="py-src-variable">split</span>(<span class="py-src-string">"/src/"</span>)
+        <span class="py-src-comment"># divided the name in a list: with N directory plus the last element</span>
+        <span class="py-src-comment"># which is the filename</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">name_stripped</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>.<span class="py-src-variable">split</span>(<span class="py-src-string">"/"</span>)
+        <span class="py-src-comment"># to reach the base directory we need to go back the number of dirs in</span>
+        <span class="py-src-comment"># the list plus 1, i.e. the length of the list</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">depth</span>=<span class="py-src-variable">len</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">name_stripped</span>)
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>=<span class="py-src-string">"../"</span>*<span class="py-src-variable">self</span>.<span class="py-src-variable">depth</span>
+        <span class="py-src-comment"># standard css file [not used for most of the stuff]</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">css</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"css/"</span>+<span class="py-src-variable">CSS</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">doctype</span>=<span class="py-src-variable">DOCTYPE</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">parse_header</span>()
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">parse_text</span>()
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">parse_footer</span>()
+        <span class="py-src-comment"># Calculates the day in which the file was last edited and saves in</span>
+        <span class="py-src-comment"># human readable form</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">mtime</span>=<span class="py-src-variable">os</span>.<span class="py-src-variable">stat</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>).<span class="py-src-variable">st_mtime</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">mtime_string</span>=<span class="py-src-variable">time</span>.<span class="py-src-variable">strftime</span>(<span class="py-src-string">"%d %h %Y"</span>, <span class="py-src-variable">time</span>.<span class="py-src-variable">localtime</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">mtime</span>))
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">time_string</span>=<span class="py-src-variable">time</span>.<span class="py-src-variable">strftime</span>(<span class="py-src-string">"%d %h %Y"</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">template</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Standard template for a nice start!
+        ou need to replace the html text in the body!
+        """</span>
+        <span class="py-src-variable">output</span>=<span class="py-src-variable">file</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>, <span class="py-src-string">'w'</span>).<span class="py-src-variable">write</span>
+        <span class="py-src-variable">output</span>(<span class="py-src-string">"""%s
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;CHANGE ME&lt;/title&gt;
+&lt;meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15"&gt;
+&lt;link rel="STYLESHEET" href="%s" type="text/css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!--it--&gt;
+    &lt;p&gt;
+    Pagina non disponibile in questa lingua!
+    &lt;FORM&gt;&lt;INPUT TYPE="button" VALUE="Indietro" onClick="history.go(-1);return true;"&gt; &lt;/FORM&gt;
+    &lt;/p&gt;
+&lt;!--/it--&gt;
+
+&lt;!--en--&gt;
+    &lt;p&gt;
+    Page not available in this language!
+    &lt;FORM&gt;&lt;INPUT TYPE="button" VALUE="Back" onClick="history.go(-1);return true;"&gt; &lt;/FORM&gt;
+    &lt;/p&gt;
+&lt;!--/en--&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"""</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">doctype</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">css</span>))
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_boughs</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">tree</span>, <span class="py-src-parameter">lang</span>, <span class="py-src-parameter">level</span>=<span class="py-src-number">0</span>):
+        <span class="py-src-string">"""Recursive function to add boughs"""</span>
+        <span class="py-src-variable">lines</span>=[]
+        <span class="py-src-keyword">for</span> <span class="py-src-variable">bough</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">tree</span>.<span class="py-src-variable">boughs</span>:
+            <span class="py-src-variable">url</span>=<span class="py-src-string">"%s%s/%s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">bough</span>.<span class="py-src-variable">urls</span>()[<span class="py-src-number">0</span>])
+            <span class="py-src-variable">description</span>=<span class="py-src-variable">bough</span>.<span class="py-src-variable">names</span>[<span class="py-src-variable">lang</span>]
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"%s %s %s"</span> % (<span class="py-src-variable">level</span>, <span class="py-src-variable">url</span>, <span class="py-src-variable">description</span>))
+            <span class="py-src-keyword">if</span> <span class="py-src-variable">self</span>.<span class="py-src-variable">name</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">bough</span>.<span class="py-src-variable">urls</span>():
+                <span class="py-src-variable">lines</span>.<span class="py-src-variable">extend</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">append_boughs</span>(<span class="py-src-variable">bough</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">level</span>+<span class="py-src-number">1</span>))
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_navigator</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lines</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Site Navigator"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">extend</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">append_boughs</span>(<span class="py-src-variable">tree</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">level</span>=<span class="py-src-number">0</span>))
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_links</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lines</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Appends a section containing external links link"""</span>
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim &amp;nbsp;"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Links"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"external http://alepisa.blogspot.com Blog"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"external http://polcasaglia.googlepages.com Polisposportiva&amp;nbsp;Casaglia"</span> )
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"external http://www.fe.infn.it/astro Unife"</span> )
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim &amp;nbsp;"</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_misc</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lines</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Appends a section containing miscellaneous stuff links link"""</span>
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"en"</span>:
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Misc"</span>)
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"%s%s/credits.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-string">"Credits"</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"%s%s/search.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-string">"Search"</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"external %s/old/index.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-string">"Ye olde Darkmoon ;("</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim &amp;nbsp;"</span>)
+        <span class="py-src-keyword">elif</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"it"</span>:
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Misc"</span>)
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"%s%s/credits.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-string">"Ringraziamenti"</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"%s%s/search.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-string">"Cerca"</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"external %s/old/index.html %s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-string">"Il vecchio Darkmoon ;("</span>))
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim &amp;nbsp;"</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_contacts</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lines</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Appends a section containing miscellaneous stuff links link"""</span>
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"en"</span>:
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Contacts"</span>)
+        <span class="py-src-keyword">elif</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"it"</span>:
+            <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Contatti"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"mailto://%s Darkmoon mail"</span> % <span class="py-src-variable">MAIL</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim %s"</span> % <span class="py-src-variable">SKYPE</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"verbatim &amp;nbsp;"</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">append_lastupdate</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lines</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Append last update information"""</span>
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">"section Last update"</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">'verbatim &lt;i class="lastupdate"&gt;page: %s&lt;/i&gt;'</span> % <span class="py-src-variable">self</span>.<span class="py-src-variable">mtime_string</span>)
+        <span class="py-src-variable">lines</span>.<span class="py-src-variable">append</span>(<span class="py-src-string">'verbatim &lt;i class="lastupdate"&gt;site: %s&lt;/i&gt;'</span> % <span class="py-src-variable">self</span>.<span class="py-src-variable">time_string</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">navside_lines</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Lines for building the table of the side with the site navigator"""</span>
+        <span class="py-src-variable">lines</span>=[]
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">append_navigator</span>(<span class="py-src-variable">lines</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">append_links</span>(<span class="py-src-variable">lines</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">append_misc</span>(<span class="py-src-variable">lines</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">append_contacts</span>(<span class="py-src-variable">lines</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">append_lastupdate</span>(<span class="py-src-variable">lines</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">lines</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">parse_header</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Extracts the header of the source page"""</span>
+        <span class="py-src-variable">bodystart</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-string">r"&lt;body&gt;"</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">lines</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">1</span>]
+        <span class="py-src-variable">oldheader</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">lines</span>[<span class="py-src-number">0</span>:<span class="py-src-variable">bodystart</span>]
+        <span class="py-src-variable">start</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-string">"&lt;title&gt;"</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">oldheader</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">1</span>]
+        <span class="py-src-variable">finish</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-string">"&lt;/title&gt;"</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">oldheader</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">0</span>]
+        <span class="py-src-variable">titles</span>=<span class="py-src-variable">oldheader</span>[<span class="py-src-variable">start</span>:<span class="py-src-variable">finish</span>].<span class="py-src-variable">split</span>(<span class="py-src-string">"--"</span>)
+        <span class="py-src-comment"># Duplicate if needed</span>
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">len</span>(<span class="py-src-variable">titles</span>)==<span class="py-src-number">1</span>: <span class="py-src-variable">titles</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">titles</span>[<span class="py-src-number">0</span>])
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">title</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">header</span>= {}, {}
+        <span class="py-src-keyword">for</span> <span class="py-src-variable">i</span>, <span class="py-src-variable">lang</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">enumerate</span>(<span class="py-src-variable">LANGS</span>):
+            <span class="py-src-variable">self</span>.<span class="py-src-variable">title</span>[<span class="py-src-variable">lang</span>]=<span class="py-src-variable">titles</span>[<span class="py-src-variable">i</span>]
+            <span class="py-src-variable">self</span>.<span class="py-src-variable">header</span>[<span class="py-src-variable">lang</span>]=<span class="py-src-string">"%s%s%s"</span> % (<span class="py-src-variable">oldheader</span>[:<span class="py-src-variable">start</span>], <span class="py-src-variable">self</span>.<span class="py-src-variable">title</span>[<span class="py-src-variable">lang</span>], <span class="py-src-variable">oldheader</span>[<span class="py-src-variable">finish</span>:],)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">parse_text</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Extracts the part of the correct language!"""</span>
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>={}
+        <span class="py-src-keyword">for</span> <span class="py-src-variable">i</span>, <span class="py-src-variable">lang</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">enumerate</span>(<span class="py-src-variable">LANGS</span>):
+            <span class="py-src-variable">text</span>=<span class="py-src-variable">file</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">src</span>).<span class="py-src-variable">read</span>()
+            <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>[<span class="py-src-variable">lang</span>]=<span class="py-src-string">""</span>
+            <span class="py-src-variable">extracted</span>, <span class="py-src-variable">finish</span> = <span class="py-src-string">""</span>, <span class="py-src-number">0</span>
+            <span class="py-src-variable">start_string</span>, <span class="py-src-variable">stop_string</span> = <span class="py-src-string">r"&lt;!--%s--&gt;"</span> % <span class="py-src-variable">lang</span>, <span class="py-src-string">r"&lt;!--/%s--&gt;"</span> % <span class="py-src-variable">lang</span>
+            <span class="py-src-comment"># Iterates to check multiple blocks of text within the file!</span>
+            <span class="py-src-comment"># Pay attention to infinite loops!</span>
+            <span class="py-src-comment"># AttributeError exception raised when no more blocks to extract exist</span>
+            <span class="py-src-keyword">while</span> <span class="py-src-variable">True</span>:
+                <span class="py-src-keyword">try</span>:
+                    <span class="py-src-variable">start</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-variable">start_string</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">text</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">1</span>]
+                    <span class="py-src-variable">finish</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-variable">stop_string</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">text</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">0</span>]
+                    <span class="py-src-variable">extracted</span>+=<span class="py-src-variable">text</span>[<span class="py-src-variable">start</span>:<span class="py-src-variable">finish</span>]
+                    <span class="py-src-variable">text</span>=<span class="py-src-variable">text</span>[<span class="py-src-variable">finish</span>+<span class="py-src-number">1</span>:]
+                <span class="py-src-keyword">except</span> <span class="py-src-variable">AttributeError</span>:
+                    <span class="py-src-keyword">break</span>
+            <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>[<span class="py-src-variable">lang</span>]+=<span class="py-src-variable">extracted</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">parse_footer</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-string">"""Extracts the header of the source page"""</span>
+        <span class="py-src-variable">lines</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">lines</span>
+        <span class="py-src-variable">bodyfinish</span>=<span class="py-src-variable">re</span>.<span class="py-src-variable">compile</span>(<span class="py-src-string">r"&lt;/body&gt;"</span>, <span class="py-src-variable">re</span>.<span class="py-src-variable">IGNORECASE</span>).<span class="py-src-variable">search</span>(<span class="py-src-variable">lines</span>).<span class="py-src-variable">span</span>()[<span class="py-src-number">0</span>]
+        <span class="py-src-variable">self</span>.<span class="py-src-variable">footer</span>=<span class="py-src-variable">lines</span>[<span class="py-src-variable">bodyfinish</span>:]
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">frame_body</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Formats the central table"""</span>
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>[<span class="py-src-variable">lang</span>]
+        <span class="py-src-variable">toptds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">''</span>, <span class="py-src-string">"frame-nw"</span>, <span class="py-src-string">'width=8'</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-n"</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-ne"</span>, <span class="py-src-string">'width=8'</span>),
+               )
+        <span class="py-src-variable">midtds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-w"</span>, <span class="py-src-string">'width=8'</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-variable">body</span>, <span class="py-src-string">"frame-c"</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-e"</span>, <span class="py-src-string">'width=8'</span>),
+               )
+        <span class="py-src-variable">bottds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-sw"</span>, <span class="py-src-string">'width=8'</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-s"</span>),
+                <span class="py-src-variable">Td</span>(<span class="py-src-string">""</span>, <span class="py-src-string">"frame-se"</span>, <span class="py-src-string">'width=8'</span>),
+               )
+        <span class="py-src-variable">trs</span>=(<span class="py-src-variable">Tr</span>(<span class="py-src-variable">toptds</span>, <span class="py-src-string">"frame"</span>,),
+             <span class="py-src-variable">Tr</span>(<span class="py-src-variable">midtds</span>, <span class="py-src-string">"frame"</span>),
+             <span class="py-src-variable">Tr</span>(<span class="py-src-variable">bottds</span>, <span class="py-src-string">"frame"</span>,),
+            )
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">Table</span>(<span class="py-src-variable">trs</span>, <span class="py-src-string">"Page"</span>, <span class="py-src-string">"frame"</span>, <span class="py-src-string">'width=480 cellspacing=0 cellpadding=0'</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">get_translation</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Prepares the translation magic button"""</span>
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"it"</span>:
+            <span class="py-src-variable">url</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"en/"</span>+<span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>
+            <span class="py-src-variable">image</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"img/uk.png"</span>
+            <span class="py-src-variable">alttext</span>=<span class="py-src-string">'English version'</span>
+        <span class="py-src-keyword">elif</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"en"</span>:
+            <span class="py-src-variable">url</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"it/"</span>+<span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>
+            <span class="py-src-variable">image</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"img/it.png"</span>
+            <span class="py-src-variable">alttext</span>=<span class="py-src-string">'Italian version'</span>
+        <span class="py-src-variable">img</span>=<span class="py-src-string">'&lt;img src="%s" height="15" alt="%s"&gt;&lt;br&gt;%s'</span> % (<span class="py-src-variable">image</span>, <span class="py-src-variable">alttext</span>,<span class="py-src-variable">alttext</span>, )
+        <span class="py-src-variable">a</span>=<span class="py-src-variable">A</span>(<span class="py-src-variable">img</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">"translation"</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">str</span>(<span class="py-src-variable">a</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">google_search</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Returns the websearch stuff"""</span>
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">GOOGLE_SEARCH_ITA</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">get_corner_left</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Returns the left top corner of the page, with clickable logo that
+        points towards the homepage."""</span>
+        <span class="py-src-variable">url</span>=<span class="py-src-string">"%s/%s/index.html"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>)
+        <span class="py-src-variable">img</span>=<span class="py-src-string">'&lt;img class="corner-left" alt="Corner image" border="0" src="%simg/corner-left.png"&gt;'</span> % <span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>
+        <span class="py-src-variable">a</span>=<span class="py-src-variable">A</span>(<span class="py-src-variable">img</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">"corner"</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">Td</span>(<span class="py-src-variable">str</span>(<span class="py-src-variable">a</span>), <span class="py-src-string">"corner-left"</span>,)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">comb_side</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">line</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Transforms the line in a &lt;td&gt; element according to some standars keywords."""</span>
+        <span class="py-src-variable">line</span>=<span class="py-src-variable">line</span>.<span class="py-src-variable">split</span>()
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">len</span>(<span class="py-src-variable">line</span>)!=<span class="py-src-number">0</span>:
+            <span class="py-src-keyword">if</span> <span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]==<span class="py-src-string">"%s%s/%s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>):
+                <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">'%s'</span> % (<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>:])), <span class="py-src-string">"sidethispage"</span>),)
+            <span class="py-src-keyword">elif</span> <span class="py-src-variable">line</span>[<span class="py-src-number">0</span>].<span class="py-src-variable">isdigit</span>():
+                <span class="py-src-keyword">if</span> <span class="py-src-variable">line</span>[<span class="py-src-number">1</span>]==<span class="py-src-string">"%s%s/%s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>):
+                    <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">'%s%s'</span> % (<span class="py-src-string">"&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>*<span class="py-src-variable">int</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]),<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">2</span>:])), <span class="py-src-string">"sidethispage"</span>),)
+                <span class="py-src-keyword">else</span>:
+                    <span class="py-src-variable">text</span>=<span class="py-src-string">'%s%s'</span> % (<span class="py-src-string">"&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;"</span>*<span class="py-src-variable">int</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]),<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">2</span>:]))
+                    <span class="py-src-variable">url</span>=<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>]
+                    <span class="py-src-variable">a</span>=<span class="py-src-variable">A</span>(<span class="py-src-variable">text</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">"side"</span>)
+                    <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-variable">str</span>(<span class="py-src-variable">a</span>), <span class="py-src-string">"side"</span>),)
+            <span class="py-src-keyword">elif</span> <span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]==<span class="py-src-string">"verbatim"</span>:
+                <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">'%s'</span> % (<span class="py-src-string">"\n"</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>:])), <span class="py-src-string">"side"</span>),)
+            <span class="py-src-keyword">elif</span> <span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]==<span class="py-src-string">"section"</span>:
+                <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-string">'%s'</span> % (<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>:])), <span class="py-src-string">"sidesection"</span>),)
+            <span class="py-src-keyword">elif</span> <span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]==<span class="py-src-string">"external"</span>:
+                <span class="py-src-variable">text</span>=<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">2</span>:])
+                <span class="py-src-variable">url</span>=<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>]
+                <span class="py-src-variable">a</span>=<span class="py-src-variable">A</span>(<span class="py-src-variable">text</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">"side"</span>, <span class="py-src-string">'target="_blank"'</span>)
+                <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-variable">str</span>(<span class="py-src-variable">a</span>), <span class="py-src-string">"side"</span>),)
+            <span class="py-src-keyword">else</span>:
+                <span class="py-src-variable">text</span>=<span class="py-src-string">" "</span>.<span class="py-src-variable">join</span>(<span class="py-src-variable">line</span>[<span class="py-src-number">1</span>:])
+                <span class="py-src-variable">url</span>=<span class="py-src-variable">line</span>[<span class="py-src-number">0</span>]
+                <span class="py-src-variable">a</span>=<span class="py-src-variable">A</span>(<span class="py-src-variable">text</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">"side"</span>)
+                <span class="py-src-variable">tds</span>=(<span class="py-src-variable">Td</span>(<span class="py-src-variable">str</span>(<span class="py-src-variable">a</span>), <span class="py-src-string">"side"</span>),)
+            <span class="py-src-keyword">return</span> <span class="py-src-variable">Tr</span>(<span class="py-src-variable">tds</span>, <span class="py-src-string">"side"</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">get_adsside</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Ads that have to be put on the side column"""</span>
+        <span class="py-src-variable">tds</span>=[]
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"en"</span>: <span class="py-src-variable">tds</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">get_translation</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">"translation"</span>))
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">lang</span>==<span class="py-src-string">"it"</span>: <span class="py-src-variable">tds</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">get_translation</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">"translation"</span>))
+        <span class="py-src-keyword">if</span> <span class="py-src-variable">TEST</span>==<span class="py-src-number">1</span>:
+            <span class="py-src-variable">url</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">backstring</span>+<span class="py-src-string">"src/"</span>+<span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>
+            <span class="py-src-variable">anchor</span>=<span class="py-src-variable">A</span>(<span class="py-src-string">'LINK TO SOURCE'</span>, <span class="py-src-variable">url</span>, <span class="py-src-string">'src'</span>)
+            <span class="py-src-variable">tds</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">Td</span>(<span class="py-src-string">'%s'</span> % <span class="py-src-variable">anchor</span>, <span class="py-src-string">"src"</span>))
+        <span class="py-src-variable">tds</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">Td</span>(<span class="py-src-variable">ads</span>[<span class="py-src-string">"referral"</span>][<span class="py-src-variable">TEST</span>], <span class="py-src-string">"referral"</span>))
+        <span class="py-src-variable">tds</span>.<span class="py-src-variable">append</span>(<span class="py-src-variable">Td</span>(<span class="py-src-variable">ads</span>[<span class="py-src-string">"skyscraper"</span>][<span class="py-src-variable">TEST</span>], <span class="py-src-string">"skyscraper"</span>))
+        <span class="py-src-variable">trs</span>=[<span class="py-src-variable">Tr</span>((<span class="py-src-variable">td</span>,), <span class="py-src-variable">td</span>.<span class="py-src-variable">cssclass</span>) <span class="py-src-keyword">for</span> <span class="py-src-variable">td</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">tds</span>]
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">Table</span>(<span class="py-src-variable">trs</span>, <span class="py-src-string">"adsside"</span>, <span class="py-src-string">"ads table"</span>, <span class="py-src-string">'cellspacing=0 cellpadding=0 align="center"'</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">get_navside</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Formats the site navigation table"""</span>
+        <span class="py-src-variable">trs</span>=[<span class="py-src-variable">self</span>.<span class="py-src-variable">comb_side</span>(<span class="py-src-variable">line</span>, <span class="py-src-variable">lang</span>) <span class="py-src-keyword">for</span> <span class="py-src-variable">line</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">self</span>.<span class="py-src-variable">navside_lines</span>(<span class="py-src-variable">lang</span>)]
+        <span class="py-src-variable">trs</span>=[<span class="py-src-variable">tr</span> <span class="py-src-keyword">for</span> <span class="py-src-variable">tr</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">trs</span> <span class="py-src-keyword">if</span> <span class="py-src-variable">tr</span> <span class="py-src-keyword">is</span> <span class="py-src-keyword">not</span> <span class="py-src-variable">None</span>]
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">Table</span>(<span class="py-src-variable">trs</span>, <span class="py-src-string">"navside"</span>, <span class="py-src-string">"side"</span>, <span class="py-src-string">'width=200 cellspacing=0 cellpadding=0 align="center"'</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">get_top_table</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Formats the top table with google search and translation"""</span>
+        <span class="py-src-variable">gsearch_td</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">google_search</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">""</span>)
+        <span class="py-src-variable">translate_td</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">get_translation</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">"top"</span>)
+        <span class="py-src-variable">trs</span>=(<span class="py-src-variable">Tr</span>((<span class="py-src-variable">gsearch_td</span>, <span class="py-src-variable">translate_td</span>), <span class="py-src-string">"top"</span>, <span class="py-src-string">'align="center"'</span>),)
+        <span class="py-src-keyword">return</span> <span class="py-src-variable">Table</span>(<span class="py-src-variable">trs</span>, <span class="py-src-string">"Top"</span>, <span class="py-src-string">"top"</span>,  <span class="py-src-string">'align="right" cellspacing=0 cellpadding=0"'</span>)
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">remake_body</span>(<span class="py-src-parameter">self</span>, <span class="py-src-parameter">lang</span>):
+        <span class="py-src-string">"""Returns the formatted page as a table!
+        It needs only an header and footer with the correct html preamble and conclusion.
+        """</span>
+        <span class="py-src-comment"># advertisement first...</span>
+        <span class="py-src-comment"># top</span>
+        <span class="py-src-variable">hat</span>=<span class="py-src-variable">Tr</span>((<span class="py-src-variable">Td</span>(<span class="py-src-variable">GOOGLE_SEARCH_ITA</span>, <span class="py-src-string">"hat"</span>, <span class="py-src-string">'colspan=3'</span>),), <span class="py-src-string">"hat"</span>, <span class="py-src-string">'valign="center"'</span>),
+        <span class="py-src-variable">slimbanner</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">ads</span>[<span class="py-src-string">"slimbanner"</span>][<span class="py-src-variable">TEST</span>], <span class="py-src-string">"slimbanner"</span>, <span class="py-src-string">'align="center" colspan=3'</span>)
+        <span class="py-src-variable">slimbannertr</span>=<span class="py-src-variable">Tr</span>((<span class="py-src-variable">slimbanner</span>, ), <span class="py-src-string">"slimbanner"</span>)
+        <span class="py-src-comment"># center</span>
+        <span class="py-src-variable">navside</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">get_navside</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">"sidetable"</span>, <span class="py-src-string">'valign="top"'</span>)
+        <span class="py-src-variable">center</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">text</span>[<span class="py-src-variable">lang</span>], <span class="py-src-string">"bodytable"</span>, <span class="py-src-string">'align="center" valign="top" width=440'</span>)
+        <span class="py-src-variable">adsside</span>=<span class="py-src-variable">Td</span>(<span class="py-src-variable">self</span>.<span class="py-src-variable">get_adsside</span>(<span class="py-src-variable">lang</span>), <span class="py-src-string">"adsensetable"</span>, <span class="py-src-string">'align="center" valign="top"'</span>)
+        <span class="py-src-variable">midtr</span>=<span class="py-src-variable">Tr</span>((<span class="py-src-variable">adsside</span>,<span class="py-src-variable">center</span>,<span class="py-src-variable">navside</span>,), <span class="py-src-string">"mid"</span>)
+        <span class="py-src-comment"># make the table</span>
+        <span class="py-src-variable">table</span>=<span class="py-src-variable">Table</span>((<span class="py-src-variable">hat</span>, <span class="py-src-variable">slimbannertr</span>, <span class="py-src-variable">midtr</span>,), <span class="py-src-string">"Banner"</span>, <span class="py-src-string">"main"</span>, <span class="py-src-string">'cellspacing=0 cellpadding=0'</span>)
+        <span class="py-src-keyword">return</span> <span class="py-src-string">"""&lt;div align="center"&gt;%s&lt;/div&gt;"""</span> % <span class="py-src-variable">table</span>
+
+    <span class="py-src-keyword">def</span> <span class="py-src-identifier">ap2html</span>(<span class="py-src-parameter">self</span>):
+        <span class="py-src-keyword">for</span> <span class="py-src-variable">lang</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">LANGS</span>:
+            <span class="py-src-variable">apbody</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">remake_body</span>(<span class="py-src-variable">lang</span>)
+            <span class="py-src-variable">compiled</span>=<span class="py-src-variable">self</span>.<span class="py-src-variable">header</span>[<span class="py-src-variable">lang</span>]+<span class="py-src-variable">apbody</span>+<span class="py-src-variable">ANALYTICS</span>+<span class="py-src-variable">self</span>.<span class="py-src-variable">footer</span>
+            <span class="py-src-variable">filename</span>=<span class="py-src-string">"%s/%s/%s"</span> % (<span class="py-src-variable">self</span>.<span class="py-src-variable">prepath</span>, <span class="py-src-variable">lang</span>, <span class="py-src-variable">self</span>.<span class="py-src-variable">name</span>)
+            <span class="py-src-variable">file</span>(<span class="py-src-variable">filename</span>, <span class="py-src-string">'w'</span>).<span class="py-src-variable">write</span>(<span class="py-src-variable">compiled</span>)
+
+<span class="py-src-keyword">if</span> <span class="py-src-variable">__name__</span>==<span class="py-src-string">'__main__'</span>:
+    <span class="py-src-comment"># Import Psyco if available</span>
+    <span class="py-src-keyword">try</span>:
+        <span class="py-src-keyword">import</span> <span class="py-src-variable">psyco</span>
+        <span class="py-src-variable">psyco</span>.<span class="py-src-variable">full</span>()
+    <span class="py-src-keyword">except</span> <span class="py-src-variable">ImportError</span>:
+        <span class="py-src-keyword">pass</span>
+    <span class="py-src-comment"># ...your code here...</span>
+    <span class="py-src-keyword">for</span> <span class="py-src-variable">arg</span> <span class="py-src-keyword">in</span> <span class="py-src-variable">args</span>:
+        <span class="py-src-variable">page</span>=<span class="py-src-variable">Page</span>(<span class="py-src-variable">arg</span>)
+        <span class="py-src-variable">page</span>.<span class="py-src-variable">ap2html</span>()
+</pre>
+</body>

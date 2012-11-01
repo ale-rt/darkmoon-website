@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+  <title>pyxcom user guide</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="STYLESHEET" href="../../../css/style.css" type="text/css">
+</head>
+
+<body>
+<!--it-->
+<em>Under construction</em>
+<h1>Usare pyxcom</h1>
+<p>
+Una volta completata l'installazione del programma potete decidere se utilizzarlo tramite riga di comando, interfaccia grafica Qt o interfaccia grafica wxPython.
+</p>
+<!--/it-->
+<!--en-->
+<em>Under construction</em>
+<h1>Using pyxcom</h1>
+<p>
+Once you have a working pyxcom installation you can decide wether to use the command line interface, the Qt graphical user interface, or the wxPython graphical user interface.
+</p>
+<!--/en-->
+<!--it-->
+<h3>Pyxcom a riga di comando</h3>
+<p>
+Nell'attesa che questo manuale cresca, potete scoprire le funzionalita' di pyxcom con il comando:<br>
+<tt>pyxcom --help</tt>
+</p>
+<!--/it-->
+<!--en-->
+<h3>Pyxcom Text User Interface</h3>
+<p>
+While you are waiting for this page to be completed, you can discover the capabilities of pyxcom with the command:<br>
+<tt>pyxcom --help</tt>
+</p>
+<!--/en-->
+<!--it-->
+<p>
+L'output di questo comando dovrebbe essere qualcosa di simile a quanto riportato qui sotto:
+</p>
+<p class="code">
+USAGE: pyxcom.py [OPTIONS] [ENERGIES]<br>
+<br>
+OPTIONS:<br>
+    -h, -?, --help: obtain help<br>
+    --helpcol: show information about columns meaning<br>
+    -Z: atomic number (default 29)<br>
+    --mat NaCl: material (default None)<br>
+    --range [Emin:Emax]: return results from minimum to maximum energy (1 keV step)<br>
+    --columns [colN1,colN2,...]: select output columns (See below, default all columns)<br>
+    --quiet: suppress outputs comments<br>
+    --qt: starts the Qt graphical interface<br>
+    --wx: starts the wxPython graphical interface<br>
+    -v, --version: outputs version and exits<br>
+<br>
+    * If both -Z and --mat are given togehter the last one you typed is evaluated<br>
+<br>
+ENERGIES:<br>
+    You can insert how many energies as you want.<br>
+    IMPORTANT: The energy unit is the  keV<br>
+    If no energies are provided the standard grid is provided<br>
+<br>
+OUTPUT COLUMNS:<br>
+    1 - Photon Energy (MeV)<br>
+    2 - Coherent Scattering (cm2/g)<br>
+    3 - Incoherent Scattering (cm2/g)<br>
+    4 - Photoelectric Absorption (cm2/g)<br>
+    5 - Pair Production In Nuclear Field (cm2/g)<br>
+    6 - Pair Production In Electron Field (cm2/g)<br>
+    7 - Total Attenuation With Coherent Scattering (cm2/g)<br>
+    8 - Total Attenuation Without Coherent Scattering (cm2/g)<br>
+<br>
+TODO:<br>
+    - loading energy file<br>
+    - documentation<br>
+</p>
+<!--/it-->
+<!--en-->
+<p>
+<p>
+The output should be something similar to what you can find in the following:
+</p>
+<p class="code">USAGE: pyxcom.py [OPTIONS] [ENERGIES]<br>
+<br>
+OPTIONS:<br>
+    -h, -?, --help: obtain help<br>
+    --helpcol: show information about columns meaning<br>
+    -Z: atomic number (default 29)<br>
+    --mat NaCl: material (default None)<br>
+    --range [Emin:Emax]: return results from minimum to maximum energy (1 keV step)<br>
+    --columns [colN1,colN2,...]: select output columns (See below, default all columns)<br>
+    --quiet: suppress outputs comments<br>
+    --qt: starts the Qt graphical interface<br>
+    --wx: starts the wxPython graphical interface<br>
+    -v, --version: outputs version and exits<br>
+<br>
+    * If both -Z and --mat are given togehter the last one you typed is evaluated<br>
+<br>
+ENERGIES:<br>
+    You can insert how many energies as you want.<br>
+    IMPORTANT: The energy unit is the  keV<br>
+    If no energies are provided the standard grid is provided<br>
+<br>
+OUTPUT COLUMNS:<br>
+    1 - Photon Energy (MeV)<br>
+    2 - Coherent Scattering (cm2/g)<br>
+    3 - Incoherent Scattering (cm2/g)<br>
+    4 - Photoelectric Absorption (cm2/g)<br>
+    5 - Pair Production In Nuclear Field (cm2/g)<br>
+    6 - Pair Production In Electron Field (cm2/g)<br>
+    7 - Total Attenuation With Coherent Scattering (cm2/g)<br>
+    8 - Total Attenuation Without Coherent Scattering (cm2/g)<br>
+<br>
+TODO:<br>
+    - loading energy file<br>
+    - documentation<br>
+</p>
+<!--/en-->
+<!--it-->
+<h3>Pyxcom con interfaccia grafica Qt</h3>
+<p>
+Per utilizzarla e' sufficiente il comando:<br>
+pyxcom --qt<br>
+L'utilizzo dovrebbe risultare intuitivo.
+</p>
+<!--/it-->
+<!--en-->
+<h3>Pyxcom Qt Graphical User Interface</h3>
+<p>
+Just start it with:<br>
+pyxcom --qt<br>
+Should be easy to understand the functionality.
+</p>
+<!--/en-->
+<!--it-->
+<h3>Pyxcom con interfaccia grafica wxPython</h3>
+<p>
+Per utilizzarla e' sufficiente il comando:<br>
+pyxcom --wx<br>
+L'utilizzo dovrebbe risultare intuitivo.
+</p>
+<!--/it-->
+<!--en-->
+<h3>Pyxcom wxPython Graphical User Interface</h3>
+<p>
+Just start it with:<br>
+pyxcom --wx<br>
+Should be easy to understand the functionality.
+</p>
+<!--/en-->
+</body>
+</html>

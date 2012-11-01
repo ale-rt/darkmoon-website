@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+<head>
+  <title>Genetic Algorythms--Algoritmi genetici</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+  <link rel="STYLESHEET" href="../../css/style.css" type="text/css">
+</head>
+<body>
+<!--it-->
+<h1>Algoritmi genetici</h1>
+<h3>Ottimizzazione di lenti di Laue</h3>
+<p>
+Sto studiando e realizzando con successo dei programmi che 
+utilizzano Algoritmi Genetici per ottimizzare l'area efficacie di 
+lenti di Laue.<br>
+Grazie all'algoritmo genetico e' possibile ottenere una 
+distribuzione dei cristalli sulla lente che dia un risultato quasi ottimale, 
+un problema altrimenti troppo difficile da risolvere.<br>
+Come vi accorgerete leggendo il seguito, il lessico utilizzato
+e' quasi totalmente mutuato dalla biologia, come tipico di questa tecnica oramai 
+consolidata!
+</p>
+<!--/it-->
+<!--en-->
+<h4>Genetic algorithms for the GRI</h4>
+<p>
+In these days I produced a really beautiful piece of software
+to optimize the GRI effective area.
+Genetic algorithms are used to optimize the crystal distribution
+on a Laue lens, a problem too complex to be solved in other ways.
+The lexycon used in the following is typical of this well established
+science.
+</p>
+<!--/en-->
+<!--it-->
+<p>
+L'idea alla base di questa tecnica e' la seguente: la distribuzione
+dei cristalli sulla lente si puo' codificare in una struttura di dati
+esattamente come in natura il DNA caratterizza un essere vivente.
+Ogni lente, con la sua peculiare distribuzione di cristalli, e' 
+caratterizzata da uno specifico genoma.<br>
+Ovviamente a diverse disposizioni di cristalli (diversi genotipi)
+corrispondono differenti caratteristiche e proprieta' fisiche.<br>
+In particolare nopi siamo interessati al valore di area efficacie 
+in funzione dell'energia, parametro che vogliamo ottimizzare e 
+che fara' la differenza nella sopravvivenza e nelle possibilita'
+di una lente di tramandare il proprio genotipo.<br>
+Consideriamo esclusivamente lenti composte di anelli concentrici,
+e ad ogni anello associamo una sorta di gene composto dalle seguenti 
+informazioni:
+</p>
+<ul>
+<li>Numero di cristalli di Cu(111);</li>
+<li>Numero di cristalli di Cu(200);</li>
+<li>Numero di cristalli di Ge(111);</li>
+<li>Numero di spazi vuoti.</li>
+</ul>
+<!--/it-->
+<!--en-->
+<p>
+The underlying idea is the following: the crystal distribution
+in the lens is like the genome and each lens has its own.
+Different crystal arrangement produce different effective area
+and we want the effective area to be as smooth and as high as
+possible.<br>
+Each ring of the lens is threated as a gene that contains four
+informations:
+</p>
+<ul>
+<li>No. of Cu(111) crystals;</li>
+<li>No. of Cu(200) crystals;</li>
+<li>No. of Ge(111) crystals;</li>
+<li>No. of empty spaces.</li>
+</ul>
+<!--/en-->
+<!--it-->
+<p>
+Il genotipo e' quindi la sequenza di tutti i geni specifici 
+degli anelli che compongono la lente.<br>
+Noto il genotipo e' possibile calcolare il fenotipo (l'area efficacie)
+e valutare la sua bonta' tramite una funzione che viene chiamata 
+<strong>fitness function</strong>.<br>
+Quando il software gira, crea inizialmente un villaggio di lenti 
+con genotipi casuali o forniti dall'utente e ad ogni iterazione 
+decide in base al valore della fitness function quali siano 
+gli elementi che sopravvivono.
+Gli altri vengono gentilmente soppressi e rimpiazzati da tre tipi
+di individui
+</p>
+<ul>
+<li>gli stranieri;</li>
+<li>i neonati;</li>
+<li>i mutanti;</li>
+</ul>
+<!--/it-->
+<!--en-->
+<p>
+The complete genome is a sequence of all the genes for the
+rings in the lens.
+The effective area is now computed (represents the fenotype)
+and evaluated through a fitness function that returns how much
+a lens effective area fits the requests.<br>
+When the software runs, first it creates a "village" of lenses
+with random or user defined dna and at each loop it decides
+wich elements should survive (of course the most fit to our requirements).
+The other elements are kindly killed and replaced with:
+</p>
+<ul>
+<li>stranger;</li>
+<li>offspring;</li>
+<li>mutants;</li>
+</ul>
+<!--/en-->
+<!--it-->
+<p>
+I 3 tipi di individui hanno un'efficacia diversa nel migliorare la qualita' del villaggio a seconda che si sia all'inizio a meta' o alla fine dell'evoluzione: piu' ci si avvicina all'ottimo piu' le mutazioni e' bene siano limitate.<br>
+Gli stranieri rappresentano nuovi elementi con un genotipo totalmente casuale. 
+I neonati sono figli di due elementi sopravvissuti e il loro genotipo e' il crossover di quello dei genitori. 
+I mutanti sono elementi ottenuti clonando un elemento di successo e mutando uno (o pochi) geni.<br>
+La scelta piu' conveniente per le ottimizzazioni fini e' quella di cambiare un solo cristallo (o spazio vuoto) alla volta.
+</p>
+<!--/it-->
+<!--en-->
+<p>
+to keep the population constant.<br>
+The three kind of newcomers are most effective, respectively, at the beginning,
+in the middle and at the end of evolution process.<br>
+The strangers are new lenses with random crystal distribution; the offsprings are the the child of two
+survived lenses, obtained with the crossover of the parents dna (rings are mixed together) and mutants are
+obtained cloning a survived element and varying only one or few gene.
+The most convenient choice for a fine tuning is to change only one crystal (or empty space) with another
+crystal (or empty space).
+</p>
+<!--/en-->
+<!--it-->
+<p>
+I migliori elementi di tre diversi villaggi sono mostrati nella seguente figura.
+</p>
+<center>
+<img border="0" src="../../img/threevillages.png">
+</center>
+<p>
+I tre elementi di successo sono ottenuti soddisfando richieste diverse:
+<ol type="A">
+<li>Elevato valore di area efficacie;</li>
+<li>Elevata regolarita' della curva;</li>
+<li>Un ragionevole compromesso tra i due;</li>
+</ol>
+</p>
+<!--/it-->
+<!--en-->
+<p>
+The best elements of three populations after several loops (generations) are
+showned here.
+</p>
+<center>
+<img border="0" src="../../img/threevillages.png">
+</center>
+<p>
+The different curves are obtained trying to satisfy the requests:
+<ol type="A">
+<li>High area;</li>
+<li>High smoothness;</li>
+<li>A reasonable compromise;</li>
+</ol>
+</p>
+<!--/en-->
+<!--it-->
+<p>
+Ovviamente quello proposto e' un semplice esempio!<br>
+Il numero di generazione necessario per ottenre un risultato 
+soddisfacente dipende dalle scelte dell'utente (numero di abitanti del villaggio,
+numero relativo di stranieri, figli e mutanti prodotti e implementazione della funzione che genera il crossover.)
+Alla fine diventa pure divertente giocare con questi esserini! :)
+</p>
+<!--/it-->
+<!--en-->
+<p>
+Of course these are only examples.
+</p>
+<p>
+The number of generation needed to converge to satysfying results depends on
+the choices of the user, like the population number and the number of newcomers
+of each type and on the mutation and crossover function.
+At the end it becomes a very nice game to play with :)
+</p>
+<!--/en-->
+</body>
+</html>
